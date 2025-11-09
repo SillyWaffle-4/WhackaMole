@@ -43,6 +43,20 @@
             .mole-hole:active {
                 transform: scale(0.9); /* Mole shrinks when hit */
             }
+            #easybutton {
+                padding: 10px 20px;
+                font-size: 16px;
+                margin: 10px;
+                cursor: pointer;
+                background-color: lightgreen;
+            }
+            #hardbutton {
+                padding: 10px 20px;
+                font-size: 16px;
+                margin: 10px;
+                background-color: lightcoral;
+                cursor: pointer;
+            }
             
             /* --- MOLE POSITIONING (3 ROWS, 6 COLUMNS) --- */
             /* Positions are calculated using a 120px gap (70px mole size + 50px space) */
@@ -86,24 +100,26 @@
         <h1>Whack-A-Mole! 🔨</h1>
         
         <div id="game-container"> 
-            <div id="mole1" class="mole-hole">1</div> 
-            <div id="mole2" class="mole-hole">2</div> 
-            <div id="mole3" class="mole-hole">3</div> 
-            <div id="mole4" class="mole-hole">4</div> 
-            <div id="mole5" class="mole-hole">5</div> 
-            <div id="mole6" class="mole-hole">6</div> 
-            <div id="mole7" class="mole-hole">7</div> 
-            <div id="mole8" class="mole-hole">8</div> 
-            <div id="mole9" class="mole-hole">9</div> 
-            <div id="mole10" class="mole-hole">10</div> 
-            <div id="mole11" class="mole-hole">11</div> 
-            <div id="mole12" class="mole-hole">12</div> 
-            <div id="mole13" class="mole-hole">13</div> 
-            <div id="mole14" class="mole-hole">14</div> 
-            <div id="mole15" class="mole-hole">15</div> 
-            <div id="mole16" class="mole-hole">16</div> 
-            <div id="mole17" class="mole-hole">17</div> 
-            <div id="mole18" class="mole-hole">18</div> 
+            <button id="easybutton">Easy Mode</button>
+            <button id="hardbutton">Hard Mode</button>
+            <div id="mole1" class="mole-hole"><img src="mole-left.JPG" width="70" alt="mole" /></div> 
+            <div id="mole2" class="mole-hole"><img src="mole-right.JPG" width="70" alt="mole" /></div> 
+            <div id="mole3" class="mole-hole"><img src="mole-right.JPG" width="70" alt="mole" /></div> 
+            <div id="mole4" class="mole-hole"><img src="mole-left.JPG" width="70" alt="mole" /></div> 
+            <div id="mole5" class="mole-hole"><img src="mole-right.JPG" width="70" alt="mole" /></div> 
+            <div id="mole6" class="mole-hole"><img src="mole-left.JPG" width="70" alt="mole" /></div> 
+            <div id="mole7" class="mole-hole"><img src="mole-right.JPG" width="70" alt="mole" /></div> 
+            <div id="mole8" class="mole-hole"><img src="mole-left.JPG" width="70" alt="mole" /></div> 
+            <div id="mole9" class="mole-hole"><img src="mole-left.JPG" width="70" alt="mole" /></div> 
+            <div id="mole10" class="mole-hole"><img src="mole-left.JPG" width="70" alt="mole" /></div> 
+            <div id="mole11" class="mole-hole"><img src="mole-right.JPG" width="70" alt="mole" /></div> 
+            <div id="mole12" class="mole-hole"><img src="mole-right.JPG" width="70" alt="mole" /></div> 
+            <div id="mole13" class="mole-hole"><img src="mole-left.JPG" width="70" alt="mole" /></div> 
+            <div id="mole14" class="mole-hole"><img src="mole-right.JPG" width="70" alt="mole" /></div> 
+            <div id="mole15" class="mole-hole"><img src="mole-left.JPG" width="70" alt="mole" /></div> 
+            <div id="mole16" class="mole-hole"><img src="mole-right.JPG" width="70" alt="mole" /></div> 
+            <div id="mole17" class="mole-hole"><img src="mole-left.JPG" width="70" alt="mole" /></div> 
+            <div id="mole18" class="mole-hole"><img src="mole-right.JPG" width="70" alt="mole" /></div> 
         </div>
         
         <div id="score">Score: 0</div>
@@ -111,15 +127,28 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
         
         <script>
+            //lets them choose easy or hard mode
+            //changes variables based on choice
+            
+
+
+            
+            //delays for one second
             // --- Game Variables ---
             let score = 0;
             let isClickable = true;
+            var moletime;
+            var moleinterval;
             
-            const moleinterval = 500; 
-            const moletime = 700; 
-            const gameTime = 60000; 
+            
+            const gameTime = 30000; //30 seconds
             const starttime = Date.now();
-            
+            moleinterval = 1000; // Time between mole appearances
+            moletime = 1000; // Time mole stays up
+            const gameOverSound = new Audio('gameover-sound.mp3');
+            gameOverSound.loop = false;
+            const ouchSound = new Audio('ouch-sound.mp3');
+            ouchSound.loop = false;
             // JAVASCRIPT FIX: Array containing all 18 mole IDs
             const moleIds = [
                 "#mole1", "#mole2", "#mole3", "#mole4", "#mole5", "#mole6",
@@ -134,6 +163,7 @@
                     score++;
                     $("#score").text("Score: " + score);
                     $(this).hide(); 
+                    ouchSound.play();
                     isClickable = false;
                 }
             });
@@ -148,9 +178,17 @@
             function moleappear() {
                 // Check if the game time is up
                 if (Date.now() - starttime >= gameTime) {
-                    alert("Game Over! Your final score is: " + score);
+                    gameOverSound.play();   
+
+                    if (score >= 50)
+                        alert("Amazing! Your final score is: " + score);
+                    else if (score >= 30)
+                        alert("Great job! Your final score is: " + score);
+                    else
+                        alert("Game over! Your final score is: " + score);
                     return;
                 }
+                
 
                 isClickable = true; 
                 
@@ -164,16 +202,42 @@
 
                 // Set a timeout to hide the mole after 'moletime'
                 setTimeout(function() {
-                    $moleToShow.hide(); // MOLE GOES DOWN!
+                   // $moleToShow.hide(); // MOLE GOES DOWN!
                     
                     // Call the next iteration of moleappear after 'moleinterval'
                     setTimeout(moleappear, moleinterval); 
 
-                }, moletime);
+                }, moletime);            
             }
 
+
+            //make moles and container dissapear during selection
+            $("#easybutton, #hardbutton").click(function(){
+                $("#easybutton").hide();
+                $("#hardbutton").hide();
+                $("#game-container").show();
+            });
             // --- START THE GAME ---
-            moleappear();
+
+            //work on these buttons to change difficulty
+            $("#easybutton").click(function(){
+                moleinterval = 300; 
+                moletime = 500;
+                $("#game-container").show();
+                $("#easybutton").hide();
+                $("#hardbutton").hide();
+                moleappear();
+            });
+            $("#hardbutton").click(function(){
+                moleinterval = 150;
+                moletime = 250;
+            
+                $("#game-container").show();
+                $("#hardbutton").hide();
+                $("#easybutton").hide();
+                moleappear(); 
+            });
+            
         </script>
     </body>
 </html>
