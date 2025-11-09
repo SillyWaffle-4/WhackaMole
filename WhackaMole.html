@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Whack-a-Mole Game 3x6</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                text-align: center;
+                margin-top: 20px;
+                background-color: #f4f4f4;
+            }
+
+            #game-container {
+                /* Set the container size large enough for the 3x6 grid */
+                position: relative;
+                width: 750px; 
+                height: 400px;
+                margin: 20px auto; 
+                background-color: #a0522d; /* Dirt/Ground color */
+                border-radius: 10px;
+                border: 10px solid #6b4423;
+            }
+
+            .mole-hole {
+                /* All 18 moles share these properties */
+                position: absolute; 
+                width: 70px; 
+                height: 70px;
+                background-color: #6b4423; 
+                border-radius: 50%;
+                cursor: pointer;
+                display: none; /* Moles start hidden */
+                
+                /* Mole Visuals and Click Effect */
+                line-height: 70px;
+                text-align: center;
+                font-size: 30px; 
+                color: white;
+                transition: transform 0.1s ease-out;
+            }
+            .mole-hole:active {
+                transform: scale(0.9); /* Mole shrinks when hit */
+            }
+            
+            /* --- MOLE POSITIONING (3 ROWS, 6 COLUMNS) --- */
+            /* Positions are calculated using a 120px gap (70px mole size + 50px space) */
+            
+            /* Row 1 (Top: 40px) */
+            #mole1 { top: 40px; left: 20px; }
+            #mole2 { top: 40px; left: 140px; }
+            #mole3 { top: 40px; left: 260px; }
+            #mole4 { top: 40px; left: 380px; }
+            #mole5 { top: 40px; left: 500px; }
+            #mole6 { top: 40px; left: 620px; }
+
+            /* Row 2 (Top: 160px) */
+            #mole7 { top: 160px; left: 20px; }
+            #mole8 { top: 160px; left: 140px; }
+            #mole9 { top: 160px; left: 260px; }
+            #mole10 { top: 160px; left: 380px; }
+            #mole11 { top: 160px; left: 500px; }
+            #mole12 { top: 160px; left: 620px; }
+
+            /* Row 3 (Top: 280px) */
+            #mole13 { top: 280px; left: 20px; }
+            #mole14 { top: 280px; left: 140px; }
+            #mole15 { top: 280px; left: 260px; }
+            #mole16 { top: 280px; left: 380px; }
+            #mole17 { top: 280px; left: 500px; }
+            #mole18 { top: 280px; left: 620px; }
+            /* --- END POSITIONING --- */
+
+
+            #score {
+                font-size: 28px;
+                font-weight: bold;
+                margin-top: 20px;
+                font-family: fantasy;
+                color: #333;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Whack-A-Mole! 🔨</h1>
+        
+        <div id="game-container"> 
+            <div id="mole1" class="mole-hole">1</div> 
+            <div id="mole2" class="mole-hole">2</div> 
+            <div id="mole3" class="mole-hole">3</div> 
+            <div id="mole4" class="mole-hole">4</div> 
+            <div id="mole5" class="mole-hole">5</div> 
+            <div id="mole6" class="mole-hole">6</div> 
+            <div id="mole7" class="mole-hole">7</div> 
+            <div id="mole8" class="mole-hole">8</div> 
+            <div id="mole9" class="mole-hole">9</div> 
+            <div id="mole10" class="mole-hole">10</div> 
+            <div id="mole11" class="mole-hole">11</div> 
+            <div id="mole12" class="mole-hole">12</div> 
+            <div id="mole13" class="mole-hole">13</div> 
+            <div id="mole14" class="mole-hole">14</div> 
+            <div id="mole15" class="mole-hole">15</div> 
+            <div id="mole16" class="mole-hole">16</div> 
+            <div id="mole17" class="mole-hole">17</div> 
+            <div id="mole18" class="mole-hole">18</div> 
+        </div>
+        
+        <div id="score">Score: 0</div>
+        
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+        
+        <script>
+            // --- Game Variables ---
+            let score = 0;
+            let isClickable = true;
+            
+            const moleinterval = 500; 
+            const moletime = 700; 
+            const gameTime = 60000; 
+            const starttime = Date.now();
+            
+            // JAVASCRIPT FIX: Array containing all 18 mole IDs
+            const moleIds = [
+                "#mole1", "#mole2", "#mole3", "#mole4", "#mole5", "#mole6",
+                "#mole7", "#mole8", "#mole9", "#mole10", "#mole11", "#mole12",
+                "#mole13", "#mole14", "#mole15", "#mole16", "#mole17", "#mole18"
+            ];
+
+            // --- 1. Click Handlers (Whack) ---
+            // Target all moles using the common class 'mole-hole'
+            $(".mole-hole").on("click", function() {
+                if ($(this).is(':visible') && isClickable) {
+                    score++;
+                    $("#score").text("Score: " + score);
+                    $(this).hide(); 
+                    isClickable = false;
+                }
+            });
+
+            // --- 2. Randomizer Function: Returns a number between 1 and 18 ---
+            function randomizer() {
+                // Returns a random index (0-17) + 1, giving us 1 through 18
+                return Math.floor(Math.random() * moleIds.length) + 1; 
+            }
+
+            // --- 3. Mole Appearance and Game Loop ---
+            function moleappear() {
+                // Check if the game time is up
+                if (Date.now() - starttime >= gameTime) {
+                    alert("Game Over! Your final score is: " + score);
+                    return;
+                }
+
+                isClickable = true; 
+                
+                // Get a random mole number (1-18)
+                const moleIndex = randomizer(); 
+                
+                // Select the mole using the array of IDs (moleIndex - 1 compensates for 0-based array index)
+                let $moleToShow = $(moleIds[moleIndex - 1]); 
+
+                $moleToShow.show(); // MOLE POPS UP!
+
+                // Set a timeout to hide the mole after 'moletime'
+                setTimeout(function() {
+                    $moleToShow.hide(); // MOLE GOES DOWN!
+                    
+                    // Call the next iteration of moleappear after 'moleinterval'
+                    setTimeout(moleappear, moleinterval); 
+
+                }, moletime);
+            }
+
+            // --- START THE GAME ---
+            moleappear();
+        </script>
+    </body>
+</html>
